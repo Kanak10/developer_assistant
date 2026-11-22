@@ -36,7 +36,7 @@ graph LR
     %% ── LLM Gateway ──────────────────────────────────────────────────────────
     subgraph GATEWAY ["🌐  LLM Gateway"]
         direction TB
-        PK["🔀 Portkey\nUnified Gateway"]
+        PK["🔀 Cloudflare AI Gateway\nUnified Gateway"]
         G1["🦙 Groq Primary\nLlama 3.3 · 70B"]
         G2["🦙 Groq Fallback\nLlama 3.1 · 8B"]
     end
@@ -150,7 +150,7 @@ graph TB
         direction LR
         QD[("🗄️ Qdrant Cloud\nVector DB")]
         FR["⚡ FlashRank\nLocal Reranker"]
-        PK["🔀 Portkey Gateway\nRouting + Fallback"]
+        PK["🔀 Cloudflare AI Gateway\nRouting + Fallback"]
         G1["🦙 Groq Primary\nLlama 3.3 · 70B"]
         G2["🦙 Groq Fallback\nLlama 3.1 · 8B"]
     end
@@ -238,7 +238,7 @@ graph TB
     B["⚡ 2. FastAPI + 🛡️ NeMo Guardrails"]
     C["🧠 3. LangGraph Agent\nPlanner → Retriever → Responder"]
     D["🗄️ 4. Qdrant Cloud\n+ FlashRank Reranker"]
-    E["🌐 5. Portkey Gateway\nGroq Llama 3.3 70B · Fallback 8B"]
+    E["🌐 5. Cloudflare AI Gateway\nGroq Llama 3.3 70B · Fallback 8B"]
     F["📥 6. Data Ingestion\nLocal Parsers · Gemini Embeddings · processed_data/"]
     G["🧪 7. RAGAS Evals\nFaithfulness · Precision · Recall · Correctness"]
     H["📡 8. Monitoring\nLogfire · LangSmith"]

@@ -407,15 +407,6 @@ wheels = [
 ]
 
 [[package]]
-name = "cached-property"
-version = "2.0.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/76/4b/3d870836119dbe9a5e3c9a61af8cc1a8b69d75aea564572e385882d5aefb/cached_property-2.0.1.tar.gz", hash = "sha256:484d617105e3ee0e4f1f58725e72a8ef9e93deee462222dbd51cd91230897641", size = 10574, upload-time = "2024-10-25T15:43:55.667Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/11/0e/7d8225aab3bc1a0f5811f8e1b557aa034ac04bdf641925b30d3caf586b28/cached_property-2.0.1-py3-none-any.whl", hash = "sha256:f617d70ab1100b7bcf6e42228f9ddcb78c676ffa167278d9f730d1c2fba69ccb", size = 7428, upload-time = "2024-10-25T15:43:54.711Z" },
-]
-
-[[package]]
 name = "catalogue"
 version = "2.0.10"
 source = { registry = "https://pypi.org/simple" }
@@ -1020,8 +1011,8 @@ dependencies = [
     { name = "nemoguardrails" },
     { name = "nest-asyncio" },
     { name = "numpy" },
+    { name = "openai" },
     { name = "pdfplumber" },
-    { name = "portkey-ai" },
     { name = "prometheus-client" },
     { name = "prometheus-fastapi-instrumentator" },
     { name = "psycopg-binary" },
@@ -1069,8 +1060,8 @@ requires-dist = [
     { name = "nemoguardrails", specifier = ">=0.23.0" },
     { name = "nest-asyncio", specifier = ">=1.6.0" },
     { name = "numpy", specifier = ">=2.5.5" },
+    { name = "openai", specifier = ">=1.0.0" },
     { name = "pdfplumber", specifier = ">=0.11.10" },
-    { name = "portkey-ai", specifier = ">=2.3.4" },
     { name = "prometheus-client", specifier = ">=0.26.0" },
     { name = "prometheus-fastapi-instrumentator", specifier = ">=8.1.0" },
     { name = "psycopg-binary", specifier = ">=3.3.9" },
@@ -4152,27 +4143,6 @@ wheels = [
 ]
 
 [[package]]
-name = "portkey-ai"
-version = "2.3.4"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "anyio" },
-    { name = "cached-property" },
-    { name = "distro" },
-    { name = "httpx" },
-    { name = "jiter" },
-    { name = "pydantic" },
-    { name = "sniffio" },
-    { name = "tqdm" },
-    { name = "types-requests" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/cf/cf/058cce65cc54a347a897a888c75b4c7c52f44a3e04899f58d61b1c03fc90/portkey_ai-2.3.4.tar.gz", hash = "sha256:c74b7e1798044a43dec064ed830ca9a3e57eb5114e0c78efff95e0b5937becd1", size = 650776, upload-time = "2026-07-23T09:13:45.62Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ae/45/b9a3586ad9506476342f177082c727d1573baf39c9b1aee6befbaba4cdef/portkey_ai-2.3.4-py3-none-any.whl", hash = "sha256:143262721fbf63dd03262286ad707a1644aca9bc3474b2a8d8247be8d507a703", size = 1346290, upload-time = "2026-07-23T09:13:43.851Z" },
-]
-
-[[package]]
 name = "posthog"
 version = "7.91.4"
 source = { registry = "https://pypi.org/simple" }
@@ -6303,18 +6273,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/6c/aa/0de7986aa1fa856adb961c67345189b97d13f6e250b34ba68884df865f07/typer-0.29.1.tar.gz", hash = "sha256:ab6eb3880bf67ce96147734717f9ec333c06f66e361f3ea947d0be43da39f242", size = 205843, upload-time = "2026-11-11T09:18:39.782Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/05/ff/51969745f31cea6bcd12151e668febcf979656316e67a7755942267c1273/typer-0.29.1-py3-none-any.whl", hash = "sha256:00dbc549c13428bec1be55fe1f4d0fb8c6637a310e4f178ef14abe9534ee7b58", size = 121064, upload-time = "2026-11-11T09:18:38.671Z" },
-]
-
-[[package]]
-name = "types-requests"
-version = "2.33.0.20261030"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "urllib3" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a6/15/63ec82f647272ae3df5124def156344ab8856d29d8c4931947f1f15c003b/types_requests-2.33.0.20261030.tar.gz", hash = "sha256:42d75eb02ed0f8220904c8fc08d3129742e7fce42fd5cf706395c8bb4c0ad990", size = 25538, upload-time = "2026-10-30T07:50:39.413Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/95/35/77ed86be430bd179d34905d62cdb5ba6747c635737092088fcf03c753c61/types_requests-2.33.0.20261030-py3-none-any.whl", hash = "sha256:06cfc2e92399bf46eda78a65cd0e2203d29ebbeede78b4ab0a5922f749ce1492", size = 21450, upload-time = "2026-10-30T07:50:38.247Z" },
 ]
 
 [[package]]
