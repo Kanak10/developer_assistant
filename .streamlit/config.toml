@@ -1,0 +1,7 @@
+[server]
+# Streamlit's file watcher scans every loaded Python module to see if it changed.
+# It trips over optional "transformers" image modules that need torchvision
+# (which we don't use) and floods the logs with ModuleNotFoundError.
+# "none" turns the watcher off. Downside: no auto-reload when you edit ui/*.py —
+# just restart Streamlit after changes.
+fileWatcherType = "none"
