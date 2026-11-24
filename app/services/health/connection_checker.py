@@ -17,7 +17,7 @@ from qdrant_client import QdrantClient
 from redis import Redis
 
 from app.config import settings
-from app.gateway.client import portkey_client
+from app.gateway.client import PRIMARY_MODEL, gateway_client
 
 
 class ConnectionResult:
@@ -99,17 +99,17 @@ def _check_qdrant() -> ConnectionResult:
         return ConnectionResult("qdrant", False, str(e))
 
 
-def _check_portkey_gateway() -> ConnectionResult:
-    """Verify Portkey LLM gateway responds to a minimal completion."""
+def _check_cloudflare_gateway() -> ConnectionResult:
+    """Verify Cloudflare AI Gateway responds to a minimal completion."""
     try:
-        resp = portkey_client.chat.completions.create(
-            model=f"@{settings.PORTKEY_PRIMARY_SLUG}/gpt-5-mini",
+        resp = gateway_client.chat.completions.create(
+            model=PRIMARY_MODEL,
             messages=[{"role": "user", "content": "Say hello in one word."}],
             max_completion_tokens=100,
             timeout=10,
         )
         if resp.choices and resp.choices[0].message.content is not None:
-            return ConnectionResult("llm_gateway", True, "Portkey gateway reachable")
+            return ConnectionResult("llm_gateway", True, "Cloudflare AI Gateway reachable")
         raise RuntimeError("empty response")
     except Exception as e:
         logfire.warning(f"LLM gateway health check failed: {e}")
@@ -186,33 +186,15 @@ def _check_logfire() -> ConnectionResult:
     return ConnectionResult("logfire", True, "Logfire configured")
 
 
-def _check_langsmith() -> ConnectionResult:
-    """Verify LangSmith API key is valid and the endpoint is reachable."""
-    if not settings.LANGSMITH_API_KEY:
-        return ConnectionResult("langsmith", False, "LANGSMITH_API_KEY not set — tracing disabled")
-    try:
-        response = requests.get(
-            f"{settings.LANGSMITH_ENDPOINT}/ok",
-            headers={"x-api-key": settings.LANGSMITH_API_KEY},
-            timeout=5,
-        )
-        response.raise_for_status()
-        return ConnectionResult("langsmith", True, f"LangSmith reachable (project: {settings.LANGSMITH_PROJECT})")
-    except Exception as e:
-        logfire.warning(f"LangSmith health check failed: {e}")
-        return ConnectionResult("langsmith", False, str(e))
-
-
 # Ordered list of all checks to run during startup and /ready.
 _CHECKERS: list[Callable[[], ConnectionResult]] = [
     _check_neon_postgres,
     _check_upstash_redis,
     _check_qdrant,
-    _check_portkey_gateway,
+    _check_cloudflare_gateway,
     _check_jina_embeddings,
     _check_jina_reranker,
     _check_logfire,
-    _check_langsmith,
 ]
 
 
