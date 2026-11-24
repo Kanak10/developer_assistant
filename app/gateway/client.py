@@ -1,8 +1,8 @@
 import json
 
-from openai import OpenAI
 from langchain_core.runnables import Runnable
 from langchain_openai import ChatOpenAI
+from openai import OpenAI
 
 from app.config import settings
 
@@ -25,7 +25,9 @@ def _headers(feature: str) -> dict:
     """Cloudflare headers: gateway auth token + metadata (shown in the Cloudflare logs)."""
     return {
         "cf-aig-authorization": f"Bearer {settings.CF_AIG_TOKEN}",
-        "cf-aig-metadata": json.dumps({"feature": feature, "environment": "production"}),
+        "cf-aig-metadata": json.dumps(
+            {"feature": feature, "environment": "production"}
+        ),
     }
 
 
@@ -66,7 +68,9 @@ def get_langchain_llm(feature: str = "rag") -> Runnable:
     return primary.with_fallbacks([backup])
 
 
-def chat_with_cache_status(messages: list[dict], temperature: float = 0.1) -> tuple[str, str]:
+def chat_with_cache_status(
+    messages: list[dict], temperature: float = 0.1
+) -> tuple[str, str]:
     """
     Calls the gateway (primary model first, then fallback) and returns
     (answer_text, cache_status). cache_status is 'HIT' or 'MISS'.
@@ -80,7 +84,9 @@ def chat_with_cache_status(messages: list[dict], temperature: float = 0.1) -> tu
                 temperature=temperature,
             )
             response = raw.parse()
-            return response.choices[0].message.content, extract_cache_status(raw.headers)
+            return response.choices[0].message.content, extract_cache_status(
+                raw.headers
+            )
         except Exception as e:
             last_error = e
     raise last_error

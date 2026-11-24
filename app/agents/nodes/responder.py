@@ -1,4 +1,5 @@
 import logfire
+
 from app.agents.state import AgentState
 from app.gateway import chat_with_cache_status
 
@@ -59,13 +60,14 @@ def generate_node(state: AgentState):
     with logfire.span("✍️ LLM Synthesis"):
         try:
             content, cache_status = chat_with_cache_status(
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.1
+                messages=[{"role": "user", "content": prompt}], temperature=0.1
             )
             is_cache_hit = cache_status == "HIT"
 
             if is_cache_hit:
-                logfire.info("⚡ Gateway Cache Hit — response served from Cloudflare cache.")
+                logfire.info(
+                    "⚡ Gateway Cache Hit — response served from Cloudflare cache."
+                )
                 plan_update = state["plan"] + ["Cache: Hit ⚡"]
                 status = "Cache hit — instant response."
             else:
@@ -77,7 +79,7 @@ def generate_node(state: AgentState):
                 "final_answer": content,
                 "status": status,
                 "plan": plan_update,
-                "messages": [{"role": "assistant", "content": content}]
+                "messages": [{"role": "assistant", "content": content}],
             }
 
         except Exception as e:

@@ -8,7 +8,7 @@ Run from the command line:
 from __future__ import annotations
 
 import sys
-from typing import Callable
+from collections.abc import Callable
 
 import logfire
 import requests
@@ -49,9 +49,8 @@ def _check_neon_postgres() -> ConnectionResult:
             check=ConnectionPool.check_connection,
         )
         conn = pool.getconn(timeout=5)
-        with conn.transaction():
-            with conn.cursor() as cur:
-                cur.execute("SELECT 1")
+        with conn.transaction(), conn.cursor() as cur:
+            cur.execute("SELECT 1")
         return ConnectionResult("postgres", True, "Neon Postgres reachable")
     except Exception as e:
         logfire.warning(f"Postgres health check failed: {e}")
@@ -109,7 +108,9 @@ def _check_cloudflare_gateway() -> ConnectionResult:
             timeout=10,
         )
         if resp.choices and resp.choices[0].message.content is not None:
-            return ConnectionResult("llm_gateway", True, "Cloudflare AI Gateway reachable")
+            return ConnectionResult(
+                "llm_gateway", True, "Cloudflare AI Gateway reachable"
+            )
         raise RuntimeError("empty response")
     except Exception as e:
         logfire.warning(f"LLM gateway health check failed: {e}")
@@ -139,7 +140,9 @@ def _check_jina_embeddings() -> ConnectionResult:
         payload = response.json()
         if not payload.get("data"):
             raise RuntimeError("empty embedding data")
-        return ConnectionResult("jina_embeddings", True, "Jina Embeddings API reachable")
+        return ConnectionResult(
+            "jina_embeddings", True, "Jina Embeddings API reachable"
+        )
     except Exception as e:
         logfire.warning(f"Jina Embeddings health check failed: {e}")
         return ConnectionResult("jina_embeddings", False, str(e))
@@ -182,7 +185,9 @@ def _check_logfire() -> ConnectionResult:
     the SDK is active. A missing token means all spans are silently dropped.
     """
     if not settings.LOGFIRE_TOKEN:
-        return ConnectionResult("logfire", False, "LOGFIRE_TOKEN not set — spans dropped")
+        return ConnectionResult(
+            "logfire", False, "LOGFIRE_TOKEN not set — spans dropped"
+        )
     return ConnectionResult("logfire", True, "Logfire configured")
 
 

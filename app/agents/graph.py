@@ -44,7 +44,9 @@ def create_checkpointer() -> BaseCheckpointSaver:
             with PostgresSaver.from_conn_string(settings.postgres_uri) as setup_saver:
                 setup_saver.setup()
         except Exception as e:
-            logfire.warning(f"⚠️ Postgres checkpointer setup failed ({e}); falling back to MemorySaver.")
+            logfire.warning(
+                f"⚠️ Postgres checkpointer setup failed ({e}); falling back to MemorySaver."
+            )
             pool.close()
             return MemorySaver()
 
@@ -90,7 +92,9 @@ def build_graph(checkpointer: BaseCheckpointSaver | None = None) -> StateGraph:
     workflow.set_entry_point("planner")
 
     # Conditional Edge: Planner -> Router -> (Retriever OR Responder)
-    workflow.add_conditional_edges("planner", route_planner, {"retriever": "retriever", "responder": "responder"})
+    workflow.add_conditional_edges(
+        "planner", route_planner, {"retriever": "retriever", "responder": "responder"}
+    )
 
     workflow.add_edge("retriever", "responder")
     workflow.add_edge("responder", END)

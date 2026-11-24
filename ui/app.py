@@ -89,7 +89,10 @@ if prompt := st.chat_input("Ask about your documentation..."):
                         base_url = os.getenv("BACKEND_URL", "http://localhost:8000")
                         url = f"{base_url}/query"
                         payload = {"q": prompt, "thread_id": st.session_state.session_id}
-                        response = requests.post(url, json=payload, timeout=60)
+                        # Send the API key when one is set (required when the API is public)
+                        api_key = os.getenv("RAG_API_KEY")
+                        headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+                        response = requests.post(url, json=payload, headers=headers, timeout=60)
                         data = response.json()
                     
                     # Show Reasoning Steps from Backend

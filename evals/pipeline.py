@@ -4,17 +4,20 @@ Calls the running FastAPI /query endpoint for each golden sample.
 Captures: actual_response (truncated to 300 chars), actual_contexts (from sources),
 and actual_tools_called (detected from thought_process).
 """
-import time
+
 import copy
 import json
 import os
-import requests
+import time
+
 import logfire
+import requests
 
 API_URL = "http://localhost:8000/query"
 RESPONSE_TRUNCATE = 300
-DELAY_BETWEEN_CALLS = 10   # seconds — stays within Groq RPM on the main key
-REQUEST_TIMEOUT = 120      # seconds — guardrails + LangGraph + Groq can take >60s
+DELAY_BETWEEN_CALLS = 10  # seconds — stays within Groq RPM on the main key
+REQUEST_TIMEOUT = 120  # seconds — guardrails + LangGraph + Groq can take >60s
+
 
 def detect_tool(thought_process: list) -> str:
     """
@@ -26,11 +29,16 @@ def detect_tool(thought_process: list) -> str:
     joined = " ".join(thought_process).lower()
     if "guardrails fired" in joined:
         return "guardrails"
-    if "intent: technical" in joined or "search term:" in joined or "context retrieved" in joined:
+    if (
+        "intent: technical" in joined
+        or "search term:" in joined
+        or "context retrieved" in joined
+    ):
         return "retrieve_documents"
     if "conversational" in joined or "memory" in joined:
         return "direct_answer"
     return "unknown"
+
 
 def run_pipeline(golden_dataset: dict, progress_callback=None) -> dict:
     """
@@ -79,7 +87,9 @@ def run_pipeline(golden_dataset: dict, progress_callback=None) -> dict:
                     )
 
                 except requests.exceptions.ConnectionError:
-                    logfire.error("❌ Cannot reach FastAPI — is the app running on :8000?")
+                    logfire.error(
+                        "❌ Cannot reach FastAPI — is the app running on :8000?"
+                    )
                     sample["actual_response"] = ""
                     sample["actual_contexts"] = sample.get("relevant_contexts", [])
                     sample["actual_tools_called"] = ["unknown"]
@@ -98,10 +108,12 @@ def run_pipeline(golden_dataset: dict, progress_callback=None) -> dict:
 
     return dataset
 
+
 def save_results(dataset: dict, path: str) -> None:
     with open(path, "w") as f:
         json.dump(dataset, f, indent=2)
-        
+
+
 def load_golden_dataset() -> dict:
     golden_path = os.path.join(os.path.dirname(__file__), "golden_dataset.json")
     with open(golden_path) as f:

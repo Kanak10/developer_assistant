@@ -13,13 +13,17 @@ _FALLBACK_MODEL = "mixedbread-ai/mxbai-embed-large-v1"
 _active_model = None
 _model_type: str | None = None  # "jina" or "fallback"
 
+
 # ── Model initialisation ───────────────────────────────────────────────────────
 def _load_fallback():
     """Load the local mxbai fallback model."""
     from sentence_transformers import SentenceTransformer
 
-    logfire.info(f"Loading fallback embedding model ({_FALLBACK_MODEL}, {_EMBEDDING_DIM}-dim).")
+    logfire.info(
+        f"Loading fallback embedding model ({_FALLBACK_MODEL}, {_EMBEDDING_DIM}-dim)."
+    )
     return SentenceTransformer(_FALLBACK_MODEL)
+
 
 def _probe_jina_api() -> bool:
     """Verify the Jina Embeddings API is reachable with the configured key."""
@@ -49,8 +53,11 @@ def _probe_jina_api() -> bool:
         logfire.info("Jina Embeddings API ready (jina-embeddings-v3, 1024-dim).")
         return True
     except Exception as e:
-        logfire.warning(f"Jina Embeddings API probe failed: {e}. Will use local fallback embeddings.")
+        logfire.warning(
+            f"Jina Embeddings API probe failed: {e}. Will use local fallback embeddings."
+        )
         return False
+
 
 def _init():
     """Initialise embedding provider once per process. Called lazily on first use."""
@@ -65,11 +72,13 @@ def _init():
         _active_model = _load_fallback()
         _model_type = "fallback"
 
+
 # ── Public helpers ─────────────────────────────────────────────────────────────
 def get_embedding_dim() -> int:
     """Return the vector dimension for the active model."""
     _init()
     return _EMBEDDING_DIM
+
 
 # ── Jina API embedding ─────────────────────────────────────────────────────────
 @retry(
@@ -102,6 +111,7 @@ def _embed_jina_batch(texts: list[str], task: str) -> list[list[float]]:
     results_sorted = sorted(results, key=lambda x: x.get("index", 0))
     return [item["embedding"] for item in results_sorted]
 
+
 def _embed_jina(texts: list[str], task: str) -> list[list[float]]:
     """Embed texts via the Jina API in batches with retry."""
     all_embeddings: list[list[float]] = []
@@ -112,11 +122,13 @@ def _embed_jina(texts: list[str], task: str) -> list[list[float]]:
             all_embeddings.extend(embeddings)
     return all_embeddings
 
+
 # ── Fallback embedding ─────────────────────────────────────────────────────────
 def _embed_fallback_batch(texts: list[str]) -> list[list[float]]:
     """Embed texts using the local mxbai model."""
     embeddings = _active_model.encode(texts, show_progress_bar=False)
     return embeddings.tolist()
+
 
 def _embed_fallback(texts: list[str]) -> list[list[float]]:
     """Embed texts via the local fallback model in batches."""
@@ -127,6 +139,7 @@ def _embed_fallback(texts: list[str]) -> list[list[float]]:
             all_embeddings.extend(_embed_fallback_batch(batch))
     return all_embeddings
 
+
 # ── Unified embedding with runtime fallback ────────────────────────────────────
 def _ensure_fallback():
     """Switch to the local fallback model if not already active."""
@@ -136,6 +149,7 @@ def _ensure_fallback():
         _active_model = _load_fallback()
         _model_type = "fallback"
 
+
 def _embed(texts: list[str], task: str) -> list[list[float]]:
     """Embed texts using the active provider, falling back to local on failure."""
     _init()
@@ -144,15 +158,19 @@ def _embed(texts: list[str], task: str) -> list[list[float]]:
         try:
             return _embed_jina(texts, task)
         except Exception as e:
-            logfire.error(f"Jina Embeddings API failed: {e}. Falling back to local model.")
+            logfire.error(
+                f"Jina Embeddings API failed: {e}. Falling back to local model."
+            )
             _ensure_fallback()
 
     return _embed_fallback(texts)
+
 
 # ── Public API (same signatures as before) ─────────────────────────────────────
 def embed_query(query: str) -> list[float]:
     """Embed a single query."""
     return _embed([query], task="retrieval.query")[0]
+
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
     """Embed a list of document texts."""

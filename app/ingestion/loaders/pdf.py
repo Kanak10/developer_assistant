@@ -1,6 +1,7 @@
 import logfire
 from pypdf import PdfReader
 
+
 def parse_pdf(file_path: str) -> str:
     """
     Extract text from a PDF locally using pypdf.
@@ -40,10 +41,12 @@ def parse_pdf(file_path: str) -> str:
             full_text = "\n".join(text_parts)
 
             if not full_text.strip():
-                logfire.warning(f"No text extracted from {file_path}. File may be fully image-based.")
+                logfire.warning(
+                    f"No text extracted from {file_path}. File may be fully image-based."
+                )
             else:
                 logfire.info(f"Extracted {len(full_text)} characters from {file_path}.")
 
             return full_text
-        except Exception as e:
+        except Exception:
             pass

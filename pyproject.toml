@@ -62,3 +62,16 @@ developer-assistant = "developer_assistant:main"
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.ruff.lint]
+# Patterns this codebase uses on purpose:
+#   BLE001/S110 – health checks and fallbacks catch every error so one failing
+#                 service never crashes the app
+#   TRY201      – `raise e` style re-raises
+#   B008        – FastAPI's `Depends(...)` in function arguments is the standard pattern
+#   EXE002      – file permission bits differ between machines/CI
+ignore = ["BLE001", "S110", "TRY201", "B008", "EXE002"]
+
+[tool.ruff.lint.per-file-ignores]
+# __init__.py files re-export names for `from app.x import y`
+"__init__.py" = ["F401"]

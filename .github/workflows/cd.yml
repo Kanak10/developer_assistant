@@ -1,0 +1,67 @@
+name: CD
+
+# Deploys the backend (api + qdrant) to an Oracle Cloud (OCI) Compute VM after CI passes.
+# The VM builds the image itself and runs it with docker compose, so no container
+# registry is needed. The Streamlit UI is deployed separately (Streamlit Community Cloud).
+#
+# Required GitHub secrets (Settings → Secrets and variables → Actions):
+#   OCI_HOST     – public IP of the VM
+#   OCI_USER     – SSH user (e.g. "ubuntu" on Ubuntu images, "opc" on Oracle Linux)
+#   OCI_SSH_KEY  – private SSH key that can log in to the VM
+#   OCI_APP_DIR  – (optional) project folder on the VM, default: ~/developer_assistant
+#
+# App secrets (GROQ_API_KEY, CF_*, JINA_API_KEY, ...) are NOT stored in GitHub:
+# they live in the .env file on the VM, which docker compose reads.
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches: [main, deployment]
+
+jobs:
+  deploy:
+    name: Deploy to OCI VM
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
+          APP_DIR: ${{ secrets.OCI_APP_DIR || '~/developer_assistant' }}
+        with:
+          host: ${{ secrets.OCI_HOST }}
+          username: ${{ secrets.OCI_USER }}
+          key: ${{ secrets.OCI_SSH_KEY }}
+          envs: DEPLOY_SHA,APP_DIR
+          command_timeout: 45m
+          script: |
+            set -e
+            cd "$(eval echo "$APP_DIR")"
+
+            # Get exactly the commit that passed CI.
+            git fetch --all --prune
+            git checkout --force "$DEPLOY_SHA"
+
+            # Rebuild and restart only the backend (api + qdrant). The Streamlit UI
+            # is deployed separately on Streamlit Community Cloud, so the ui
+            # service is stopped here if it was ever started.
+            # Qdrant data is kept in the qdrant-data volume across redeploys.
+            docker compose rm -sf ui
+            docker compose up -d --build qdrant api
+            docker image prune -f
+
+            # Wait for the API to come up (first build/startup can be slow).
+            for i in $(seq 1 30); do
+              if curl -fsS http://localhost:8000/health > /dev/null; then
+                echo "API is healthy."
+                exit 0
+              fi
+              sleep 10
+            done
+            echo "API did not become healthy in time."
+            docker compose logs --tail=100 api
+            exit 1

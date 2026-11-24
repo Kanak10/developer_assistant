@@ -2,8 +2,10 @@ services:
   qdrant:
     image: qdrant/qdrant:latest
     ports:
-      - "6333:6333"
-      - "6334:6334"
+      # Bound to 127.0.0.1: reachable from this machine (dashboard, ingestion)
+      # but not from the internet. The api container uses http://qdrant:6333.
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
     volumes:
       - qdrant-data:/qdrant/storage
     environment:
@@ -21,7 +23,7 @@ services:
       # (e.g. to point at the local qdrant service above).
       QDRANT_COLLECTION: enterprise_rag
       RATE_LIMIT_PER_MINUTE: "60"
-      RAG_API_KEY: ""
+      # RAG_API_KEY comes from .env — it protects /query when the API is public.
       LOGFIRE_IGNORE_NO_CONFIG: "1"
     env_file:
       - .env

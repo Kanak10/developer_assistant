@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # --- REASONING ENGINE (GROQ) ---
     GROQ_API_KEY: str
     GROQ_FALLBACK_API_KEY: str | None = None
-    GROQ_MODEL: str = "openai/gpt-oss-120b"      # main model (planner + responder)
+    GROQ_MODEL: str = "openai/gpt-oss-120b"  # main model (planner + responder)
     GROQ_FAST_MODEL: str = "openai/gpt-oss-20b"  # fast model (guardrails + fallback)
 
     # --- EVAL JUDGE (separate Groq key so evals don't use up the main key) ---
@@ -45,7 +45,9 @@ class Settings(BaseSettings):
     JINA_API_KEY: str | None = None
 
     # --- QDRANT VECTOR DB ---
-    QDRANT_URL: str = Field(validation_alias=AliasChoices("QDRANT_URL", "QDRANT_CLUSTER_ENDPOINT"))
+    QDRANT_URL: str = Field(
+        validation_alias=AliasChoices("QDRANT_URL", "QDRANT_CLUSTER_ENDPOINT")
+    )
     QDRANT_API_KEY: str | None = None
     QDRANT_COLLECTION: str = "enterprise_rag"
 
@@ -66,11 +68,18 @@ class Settings(BaseSettings):
 
     # --- OBSERVABILITY ---
     LOGFIRE_TOKEN: str | None = None
-    LOGFIRE_BASE_URL: str | None = None  # e.g. https://logfire-eu.pydantic.dev for EU tokens
+    LOGFIRE_BASE_URL: str | None = (
+        None  # e.g. https://logfire-eu.pydantic.dev for EU tokens
+    )
 
     @field_validator(
-        "QDRANT_API_KEY", "JINA_API_KEY", "JUDGE_GROQ", "GROQ_FALLBACK_API_KEY",
-        "NEON_DB_URL", "UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN",
+        "QDRANT_API_KEY",
+        "JINA_API_KEY",
+        "JUDGE_GROQ",
+        "GROQ_FALLBACK_API_KEY",
+        "NEON_DB_URL",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
         "LOGFIRE_TOKEN",
         mode="before",
     )
@@ -102,7 +111,9 @@ class Settings(BaseSettings):
         if not self.NEON_DB_URL:
             raise ValueError("NEON_DB_URL is not set in .env")
         base = self.NEON_DB_URL.rstrip("/")
-        keepalive = "keepalives=1&keepalives_idle=30&keepalives_interval=10&keepalives_count=5"
+        keepalive = (
+            "keepalives=1&keepalives_idle=30&keepalives_interval=10&keepalives_count=5"
+        )
         if "?" in base:
             return f"{base}&{keepalive}"
         return f"{base}?{keepalive}"
@@ -116,7 +127,9 @@ class Settings(BaseSettings):
         passed to `limits` for rate limiting and to the health checker.
         """
         if not (self.UPSTASH_REDIS_REST_URL and self.UPSTASH_REDIS_REST_TOKEN):
-            raise ValueError("UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN are not set in .env")
+            raise ValueError(
+                "UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN are not set in .env"
+            )
         host = self.UPSTASH_REDIS_REST_URL.replace("https://", "").rstrip("/")
         token = quote(self.UPSTASH_REDIS_REST_TOKEN, safe="")
         netloc = f"default:{token}@{host}"

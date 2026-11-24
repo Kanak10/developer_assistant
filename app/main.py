@@ -10,19 +10,23 @@ from app.config import settings
 # EU endpoint. If no base URL is configured, infer it from the token prefix
 # so the same .env works locally and inside Docker without manual overrides.
 _logfire_base_url = settings.LOGFIRE_BASE_URL
-if not _logfire_base_url and settings.LOGFIRE_TOKEN:
-    if settings.LOGFIRE_TOKEN.startswith("pylf_v2_eu_"):
-        _logfire_base_url = "https://logfire-eu.pydantic.dev"
+if (
+    not _logfire_base_url
+    and settings.LOGFIRE_TOKEN
+    and settings.LOGFIRE_TOKEN.startswith("pylf_v2_eu_")
+):
+    _logfire_base_url = "https://logfire-eu.pydantic.dev"
 
 logfire.configure(
     token=settings.LOGFIRE_TOKEN,
-    advanced=logfire.AdvancedOptions(base_url=_logfire_base_url) if _logfire_base_url else None,
+    advanced=logfire.AdvancedOptions(base_url=_logfire_base_url)
+    if _logfire_base_url
+    else None,
 )
 
 # Now safe to import app modules - logfire is already active
 import time
 import uuid
-from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
@@ -35,7 +39,10 @@ from app.agents.graph import build_graph
 from app.guardrails import guard, initialize_rails
 from app.health import router as health_router
 from app.logging import set_request_id
-from app.services.health.connection_checker import check_all_connections, log_connection_summary
+from app.services.health.connection_checker import (
+    check_all_connections,
+    log_connection_summary,
+)
 
 # Custom Prometheus metrics
 RAG_REQUESTS_TOTAL = Counter(
@@ -70,7 +77,9 @@ def _init_rate_limiter():
         # underlying Redis client so we only use Redis when it is really reachable.
         if not storage.check() or not storage.storage.ping():
             raise ConnectionError("Redis did not respond to ping")
-        app.state.limiter = Limiter(key_func=get_remote_address, storage_uri=settings.redis_url)
+        app.state.limiter = Limiter(
+            key_func=get_remote_address, storage_uri=settings.redis_url
+        )
         app.state.rate_limiter_storage = "redis"
         logfire.info("🚦 Rate limiting initialized via Redis.")
     except Exception as e:
@@ -127,7 +136,11 @@ class _AppLimiter:
                 if limiter is None:
                     return func(*args, **kwargs)
 
-                rule = rule_or_callable() if callable(rule_or_callable) else rule_or_callable
+                rule = (
+                    rule_or_callable()
+                    if callable(rule_or_callable)
+                    else rule_or_callable
+                )
                 # Build the slowapi wrapper at request time so the limiter
                 # instance and storage backend are always current.
                 return limiter.limit(rule)(func)(*args, **kwargs)
@@ -140,7 +153,7 @@ class _AppLimiter:
 app_limiter = _AppLimiter()
 
 
-def rate_limit(times: int = None, seconds: int = None):
+def rate_limit(times: int | None = None, seconds: int | None = None):
     """
     Decorator factory that applies slowapi rate limiting using the limiter
     initialized at startup. Falls back to a no-op if the limiter is missing.
@@ -160,7 +173,9 @@ app = FastAPI(title="Enterprise Agentic RAG API")
 app.include_router(health_router)
 
 # Expose Prometheus metrics at /metrics with default request instrumentation.
-Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
+Instrumentator().instrument(app).expose(
+    app, endpoint="/metrics", include_in_schema=False
+)
 
 
 @app.on_event("startup")
@@ -177,15 +192,19 @@ def startup_event():
     all_healthy = log_connection_summary(connection_results)
     if settings.STRICT_STARTUP and not all_healthy:
         failed = [name for name, r in connection_results.items() if not r.healthy]
-        raise RuntimeError(f"STRICT_STARTUP enabled; failing services: {', '.join(failed)}")
+        raise RuntimeError(
+            f"STRICT_STARTUP enabled; failing services: {', '.join(failed)}"
+        )
 
     if not settings.API_KEY:
-        logfire.warning("🔓 RAG_API_KEY is not set — /query is open to anyone. Set it in production.")
+        logfire.warning(
+            "🔓 RAG_API_KEY is not set — /query is open to anyone. Set it in production."
+        )
 
 
 class QueryRequest(BaseModel):
     q: str
-    thread_id: Optional[str] = "default_user"
+    thread_id: str | None = "default_user"
 
 
 @app.get("/")
@@ -229,7 +248,11 @@ def query(
             GUARDRAILS_BLOCKS_TOTAL.labels(blocked="true").inc()
             RAG_REQUESTS_TOTAL.labels(status="blocked").inc()
             RAG_REQUEST_DURATION.observe(time.perf_counter() - start)
-            logfire.info("🛡️ Request blocked by guardrails", request_id=request_id, thread_id=thread_id)
+            logfire.info(
+                "🛡️ Request blocked by guardrails",
+                request_id=request_id,
+                thread_id=thread_id,
+            )
             return {
                 "question": q,
                 "answer": rail_response,
